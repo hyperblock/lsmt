@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include "lsmt_ro_file.h"
+
 const static uint64_t MAX_OFFSET     = (1UL << 50) - 1;
 const static uint32_t MAX_LENGTH     = (1 << 14) - 1;
 const static uint64_t INVALID_OFFSET = MAX_OFFSET;
@@ -20,27 +22,7 @@ const static uint32_t ALIGNMENT4K    = 4 << 10;
 const static int MAX_LAYERS          = 255;
 const static int MAX_IO_SIZE         = 4 * 1024 * 1024;
 
-#define TYPE_SEGMENT         0
-#define TYPE_SEGMENT_MAPPING 1
-#define TYPE_FILDES          2   
-#define TYPE_LSMT_RO_INDEX   3
 
-#define PRINT_INFO(fmt, ...)                                     \
-        printf("\033[33m|INFO |\033[0mline: %d|%s: " fmt "\n", \
-               __LINE__, __FUNCTION__, __VA_ARGS__)
-
-#define PRINT_ERROR(fmt, ...)                                          \
-        fprintf(stderr, "\033[31m|ERROR|\033[0m%s:%d|%s: " fmt "\n", \
-                __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-
-#define ALIGNED_MEM(name, size, alignment)  \
-        char __buf##name[(size) + (alignment)]; \
-        char *name = (char *)(((uint64_t)(__buf##name + (alignment) - 1)) & \
-                        ~((uint64_t)(alignment) - 1));
-
-#define REVERSE_LIST(type, begin, back) { type *l = (begin); type *r = (back);\
-        while (l<r){ type tmp = *l; *l = *r; *r = tmp; l++; r--; }} \
-        
 
 /* ============================== Segments ================================= */
 
@@ -328,15 +310,6 @@ static bool verify_magic(const struct lsmt_ht *ht)
 }
 
 /* ========================= LSMTReadOnly File ============================= */
-
-struct lsmt_ro_file {
-        struct lsmt_ro_index *m_index;
-        uint64_t m_vsize;
-        bool m_ownership;       
-        size_t m_files_count;
-        size_t MAX_IO_SIZE;
-        int m_files[0];
-};
 
 int set_max_io_size(struct lsmt_ro_file *file, size_t size)
 {
