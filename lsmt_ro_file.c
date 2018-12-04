@@ -63,6 +63,7 @@ static uint64_t segment_end(const void /* const struct segment */ *m)
 
 static uint64_t segment_mapping_mend(const struct segment_mapping *m)
 {
+        if (m->zeroed) return m->moffset;
         return m->moffset + m->length;
 }
 
@@ -100,6 +101,14 @@ static bool verify_mapping_moffset(
         for (const struct segment_mapping *it = pmappings; 
                 it != pmappings + n; it++)
         {
+                if (it->zeroed == 1){
+                        if ((moffset_begin <= it->moffset) && 
+                                (segment_mapping_mend(it) <= moffset_end))
+                        {
+                                continue;
+                        }
+                        return false;
+                }
                 if (!(moffset_begin <= it->moffset && 
                         segment_mapping_mend(it) <= moffset_end &&
                         it->moffset < segment_mapping_mend(it))) {
@@ -647,7 +656,7 @@ size_t lsmt_pread(struct lsmt_ro_file *file,
         if ((count | offset) & (ALIGNMENT - 1)) {
                 PRINT_ERROR("count(%lu) and offset(%llu) must be aligned", 
                         count, offset);
-                exit(0);
+                //exit(0);
                 return -1;
         }
         size_t readn = 0;
@@ -681,14 +690,20 @@ size_t lsmt_pread(struct lsmt_ro_file *file,
                         }
                         int fd = file->m_files[mapping[i].tag];
                         ssize_t size = mapping[i].length * ALIGNMENT;
-                        ssize_t read = pread(fd, buf, size, 
-                                mapping[i].moffset * ALIGNMENT);
-                        if (read < size) {
-                                PRINT_ERROR("read %d-th file error. (%ld < %ld)"\
-                                        "errno: %d msg: %s",
-                                        mapping[i].tag, read, size, 
-                                        errno, strerror(errno));
-                                return -1;
+                        ssize_t read = 0;
+                        if (mapping[i].zeroed == 0){
+                                read = pread(fd, buf, size, 
+                                        mapping[i].moffset * ALIGNMENT);
+                                if (read < size) {
+                                        PRINT_ERROR("read %d-th file error."\
+                                                "(%ld < %ld) errno: %d msg: %s",
+                                                mapping[i].tag, read, size, 
+                                                errno, strerror(errno));
+                                        return -1;
+                                }
+                        } else {
+                                read = size;
+                                memset(buf, 0, size);
                         }
                         readn += read;
                         buf += size;
