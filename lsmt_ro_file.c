@@ -1,8 +1,5 @@
 #ifndef __KERNEL__
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+
 #include <stdbool.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -11,7 +8,11 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <limits.h>
+#include <assert.h>
+#include "lsmt_ro_file.h"
+
 #else
+
 #include <linux/kernel.h>
 #include <linux/types.h>
 #include <linux/string.h>
@@ -26,12 +27,15 @@
 #include <asm/syscalls.h>
 #include "lsmt_ro_file.h"
 #define UINT64_MAX 18446744073709551615ULL
+
 #endif
+
+#include "function.h"
 
 const static uint64_t MAX_OFFSET     = (1UL << 50) - 1;
 const static uint32_t MAX_LENGTH     = (1 << 14) - 1;
 //const static uint64_t INVALID_OFFSET = MAX_OFFSET;
-static uint64_t INVALID_OFFSET = (1UL << 50) - 1;
+const static uint64_t INVALID_OFFSET = (1UL << 50) - 1;
 const static uint32_t ALIGNMENT4K    = 4 << 10;
 //const static uint32_t ALIGNMENT      = 512U;
 #define ALIGNMENT       512U
@@ -261,8 +265,8 @@ int ro_index_lookup(const struct lsmt_ro_index *index,
         return cnt;
 }
 
-/* ========================= HeaderTailer ============================= */
-static const uint32_t FLAG_SHIFT_HEADER = 0; // 1:header     0:tailer
+/* ========================= HeaderTrailer ============================= */
+static const uint32_t FLAG_SHIFT_HEADER = 0; // 1:header     0:trailer
 static const uint32_t FLAG_SHIFT_TYPE = 1;   // 1:data file, 0:index file
 static const uint32_t FLAG_SHIFT_SEALED = 2; // 1:YES,       0:NO
 static const uint32_t HT_SPACE = 4096;
@@ -283,7 +287,7 @@ struct lsmt_ht {
         uint64_t magic0;
         struct _UUID magic1;
         // offset 24, 28
-        uint32_t size;  //= sizeof(HeaderTailer);
+        uint32_t size;  //= sizeof(HeaderTrailer);
         uint32_t flags; //= 0;
         // offset 32, 40, 48
         uint64_t index_offset; // in bytes
@@ -300,7 +304,7 @@ static bool is_header(const struct lsmt_ht *ht)
 {
         return get_flag_bit(ht, FLAG_SHIFT_HEADER);
 }
-static bool is_tail(const struct lsmt_ht *ht)
+static bool is_trailer(const struct lsmt_ht *ht)
 {
         return !is_header(ht); 
 }
@@ -339,118 +343,94 @@ size_t get_max_io_size(const struct lsmt_ro_file *file )
         return file->MAX_IO_SIZE;
 }
 
-static struct segment_mapping* do_load_index(int fd, 
+static struct segment_mapping* do_load_index(void* fd, 
                 struct lsmt_ht* pheader_tail, 
-                bool tail,
+                bool trailer,
                 ssize_t *n)
 {
         size_t index_size = 0;
         struct lsmt_ht *pht = NULL;
         ALIGNED_MEM(buf, HT_SPACE, ALIGNMENT4K);
-	#ifndef __KERNEL__
+#ifndef __KERNEL__
         struct stat stat;
-	#else
+#else
 	struct kstat stat;
-	#endif
+#endif
         struct segment_mapping *ibuf = NULL;
         struct segment_mapping *ret_index = NULL;
         uint64_t index_bytes;
-
-	#ifndef __KERNEL__
-        int ret = pread(fd, buf, HT_SPACE, 0);
-	#else
-	int ret = ksys_pread64(fd,buf,HT_SPACE,0);
-	#endif
+        int ret = _lsmt_pread(fd, buf, HT_SPACE, 0);
+	
         if (ret < (ssize_t)HT_SPACE){
-                PRINT_ERROR("failed to read file header (fildes: %d).", fd);
+                PRINT_ERROR("failed to read file header (fildes: %d).", *(int *)fd);
                 goto error_ret;
         }
 
         pht = (struct lsmt_ht*)buf;
         if (!verify_magic(pht) || !is_header(pht)) goto error_ret;        
-	#ifndef __KERNEL__
-        ret = fstat(fd, &stat);
-        if (ret < 0){
-                PRINT_ERROR("failed to stat file (fildes: %d).", fd);
-                goto error_ret;
-        }
-	#else
-	ret = vfs_fstat(fd,&stat);
-	if(ret){
-                PRINT_ERROR("failed to stat file (fildes: %d).", fd);
-                goto error_ret;
-	}
-	#endif
-        if (tail) {
-	#ifndef __KERNEL__
-                size_t tail_offset = stat.st_size - HT_SPACE;
-        #else
-                size_t tail_offset = stat.size - HT_SPACE;
-	#endif
+	ret = _lsmt_fstat(fd, &stat);
+        if (trailer) {
+                size_t trailer_offset = (
+                #ifndef __KERNEL__ 
+                        stat.st_size - HT_SPACE
+                #else
+                        stat.size - HT_SPACE
+                #endif
+                );
                 if (!is_data_file(pht)){
-                        PRINT_ERROR("uncognized file type (fildes: %d).", fd);
+                        PRINT_ERROR("uncognized file type (fildes: %d).", *(int *)fd);
                         goto error_ret;
                 }
-                #ifndef __KERNEL__
-		ret = pread(fd, buf, HT_SPACE, tail_offset);
-		#else
-		ret = ksys_pread64(fd,buf,HT_SPACE,tail_offset);
-		#endif
+                ret = _lsmt_pread(fd, buf, HT_SPACE, trailer_offset);
                 if (ret < (ssize_t)HT_SPACE){
-                        PRINT_ERROR("failed to read file tailer "\
-                                "(fildes: %d).", fd);
+                        PRINT_ERROR("failed to read file trailer "\
+                                "(fildes: %d).", (int)(uint64_t)fd);
                         goto error_ret;
                 }
-                if (!verify_magic(pht) || !is_tail(pht) ||
-                    !is_data_file(pht) || !is_sealed(pht)){
-                        PRINT_ERROR("tailer magic, tailer type, " \
+                if (!verify_magic(pht) || !is_trailer(pht) ||
+                    !is_data_file(pht) || !is_sealed(pht))
+                {
+                        PRINT_ERROR("trailer magic, trailer type, " \
                                 "file type or sealedness doesn't match"\
-                                " (fides: %d.)", fd);
+                                " (fides: %d. %d)",  (int)(uint64_t)fd, is_trailer(pht));
                         goto error_ret;
                 }
                 index_bytes = pht->index_size * sizeof(struct segment_mapping);
-                if (index_bytes > tail_offset - pht->index_offset){
+                if (index_bytes > trailer_offset - pht->index_offset){
                         PRINT_ERROR("invalid index bytes or size " \
-                                "(fildes: %d).", fd);
+                                "(fildes: %d).",  (int)(uint64_t)fd);
                         goto error_ret;
                 }
         } else {
                 if (!is_index_file(pht) || is_sealed(pht)){
                         PRINT_ERROR("file type or sealedness wrong "\
-                                "(fildes: %d).", fd);
+                                "(fildes: %d).",  (int)(uint64_t)fd);
                         goto error_ret;
                 }
                 if (pht->index_offset != HT_SPACE){
-                        PRINT_ERROR("index offset wrong (fildes: %d)", fd);
+                        PRINT_ERROR("index offset wrong (fildes: %d)",  (int)(uint64_t)fd);
                         goto error_ret;
                 }
+                index_bytes = (
 		#ifndef __KERNEL__
-                index_bytes = stat.st_size - HT_SPACE;
+                        stat.st_size - HT_SPACE
 		#else
-                index_bytes = stat.size - HT_SPACE;
+                        stat.size - HT_SPACE
 		#endif
+                );
                 pht->index_size = index_bytes / sizeof(struct segment_mapping);
         }
 
-	#ifndef __KERNEL__
+#ifndef __KERNEL__
         posix_memalign((void **)&ibuf, ALIGNMENT4K, pht->index_size * sizeof(*ibuf));
-	#else
+#else
 	ibuf =  (struct segment_mapping *)kvmalloc(pht->index_size * sizeof(*ibuf), GFP_KERNEL);
-	#endif
-
-	#ifndef __KERNEL__
-        ret = pread(fd, ibuf, index_bytes, pht->index_offset); 
-	#else
-	ret = ksys_pread64(fd,ibuf, index_bytes, pht->index_offset);
-	#endif
-        //从file的 HeaderTailer::SPACE 偏移开始读入index
+#endif
+        ret = _lsmt_pread(fd, ibuf, index_bytes, pht->index_offset);
+        //从file的 HeaderTrailer::SPACE 偏移开始读入index
         if (ret < (ssize_t)index_bytes) {
-		#ifndef __KERNEL__
-                free(ibuf);
-		#else
-		kfree(ibuf);
-		#endif
-                PRINT_ERROR("failed to read index (fildes: %d).", fd);
+                _lsmt_free(ibuf);
+		PRINT_ERROR("failed to read index (fildes: %d).",  (int)(uint64_t)fd);
                 goto error_ret;
         }
      	size_t i; 
@@ -462,35 +442,25 @@ static struct segment_mapping* do_load_index(int fd,
         }
         pht->index_size = index_size;
         if (pheader_tail) *pheader_tail = *pht;
-	#ifndef __KERNEL__
-        ret_index = (struct segment_mapping *)malloc(
+        ret_index = (struct segment_mapping *)_lsmt_malloc(
                                         index_size * 
                                         sizeof(struct segment_mapping));
-	#else
-        ret_index = (struct segment_mapping *)kvmalloc(
-                                        index_size * 
-                                        sizeof(struct segment_mapping),GFP_KERNEL);
-	#endif
-
+	
         memcpy(ret_index, ibuf, index_size * sizeof(*ret_index));
         *n = index_size;
-	#ifndef __KERNEL__
-        free(ibuf);
-	#else
-	kfree(ibuf);
-	#endif
+        _lsmt_free(ibuf);
         return ret_index;
 error_ret: 
-	#ifndef __KERNEL__
+#ifndef __KERNEL__
         PRINT_ERROR("errno: %d, msg: %s", errno, strerror(errno));
-	#else
+#else
         PRINT_ERROR("ret is %d",ret);
-	#endif
+#endif
         return NULL;
 }
 
 
-struct lsmt_ro_file *open_file(int fd, bool ownership)
+struct lsmt_ro_file *open_file(void *fd, bool ownership)
 {
         struct lsmt_ro_file *rst = NULL;
         struct lsmt_ro_index *pi = NULL;
@@ -498,9 +468,9 @@ struct lsmt_ro_file *open_file(int fd, bool ownership)
         struct lsmt_ht ht;
         ssize_t n = 0;
         size_t rst_size = 0;
-
-        if (!fd) {
-            PRINT_ERROR("invalid file ptr. (fildes: %d)", fd);
+        struct segment_mapping *it = NULL;
+        if (fd == NULL) {
+            PRINT_ERROR("invalid file ptr. (fildes: %d)",  (int)(uint64_t)fd);
             goto error_ret;
         }
         p = do_load_index(fd, &ht, true, &n);
@@ -509,7 +479,8 @@ struct lsmt_ro_file *open_file(int fd, bool ownership)
 		#ifndef __KERNEL__
                 errno = EIO;
 		#endif
-                PRINT_ERROR("failed to load index from file (fildes: %d).", fd);
+                PRINT_ERROR("failed to load index from file (fildes: %d).", 
+                                 (int)(uint64_t)fd);
                 goto error_ret;
         }
         //将索引p的地址返回给pi
@@ -518,24 +489,22 @@ struct lsmt_ro_file *open_file(int fd, bool ownership)
                                         ht.index_offset / ALIGNMENT, 
                                         false);
         if (!pi) {
-                PRINT_ERROR("failed to create memory index (fildes: %d).", fd);
+                PRINT_ERROR("failed to create memory index (fildes: %d).",
+                                (int)(uint64_t)fd);
                 goto error_ret;
         }
-     	struct segment_mapping *it = (struct segment_mapping *)pi->pbegin; 
+        it = (struct segment_mapping *)pi->pbegin; 
         for (;it!=pi->pend; it++){
                 it->tag++;
         }
         rst_size = sizeof(struct lsmt_ro_file) + 2 * sizeof(int);
-#ifndef __KERNEL__
-        rst = (struct lsmt_ro_file *)malloc(rst_size);
-#else
-        rst = (struct lsmt_ro_file *)kvmalloc(rst_size,GFP_KERNEL);
-#endif
+        rst = (struct lsmt_ro_file *)_lsmt_malloc(rst_size);
+
         if (!rst) {
                 PRINT_ERROR("failed to malloc memory. (size: %lu)", rst_size);
         }
         rst->m_index = pi;
-        rst->m_files[0] = (int)NULL;
+        rst->m_files[0] = NULL;
         rst->m_files[1] = fd;
         rst->m_files_count = 2;
         rst->m_vsize = ht.virtual_size;
@@ -555,27 +524,24 @@ int close_file(struct lsmt_ro_file **file){
         if ((*file)->m_ownership){
 		int i;
                 for (i = 0; i < (int)((*file)->m_files_count); i++){
-                        int fd = (*file)->m_files[i];
-                        PRINT_INFO("close file, fildes: %d", fd);
-                        if (fd != (int)NULL && close(fd) != 0){
-			#ifndef __KERNEL__
+                        if ((*file)->m_files[i] != NULL) {
+#ifndef __KERNEL__
+                                int fd = (int)(uint64_t)((*file)->m_files[i]);
+                                PRINT_INFO("close file, fildes: %d", fd);
+                                if (close(fd) == 0) continue;
                                 PRINT_ERROR("close file error. (fildes: %d, "\
                                         "errno: %d, msg: %s", 
                                         fd, errno, strerror(errno));
-			#else
+#else
                                 PRINT_ERROR("close file error. (fildes: %d)", fd);
-			#endif
+#endif
                                 ok = false;
                         }
                 }
         }
         if (!ok) return -1;
         PRINT_INFO("free memory. addr: %llx", (uint64_t)*file);
-	#ifndef __KERNEL__
-        free(*file);
-	#else
-	kfree(*file);
-	#endif
+        _lsmt_free(*file);      
         *file = NULL;
         return 0;
 }
@@ -665,30 +631,18 @@ static struct lsmt_ro_index *merge_memory_indexes(struct lsmt_ro_index **indexes
         size_t capacity = ro_index_size(indexes[0]);
         struct lsmt_ro_index *ret = NULL;
         struct segment_mapping *tmp = NULL;
-#ifndef __KERNEL__
-        struct segment_mapping *mappings = (struct segment_mapping *) malloc(
+        struct segment_mapping *mappings = (struct segment_mapping *) _lsmt_malloc(
                                                 sizeof(struct segment_mapping) *
                                                 capacity);
-#else
-        struct segment_mapping *mappings = (struct segment_mapping *) kvmalloc(
-                   sizeof(struct segment_mapping) *capacity, GFP_KERNEL);
-#endif
         if (!mappings) goto err_ret;
 
         merge_indexes(0, indexes, n, &mappings,
                 &size, &capacity, 0, UINT64_MAX);
         PRINT_INFO("merge done, index size: %lu", size);
 
-	#ifndef __KERNEL__
-        ret = (struct lsmt_ro_index *)malloc(sizeof(struct lsmt_ro_index));
-        tmp = (struct segment_mapping *)realloc(mappings, size * 
+        ret = (struct lsmt_ro_index *)_lsmt_malloc(sizeof(struct lsmt_ro_index));
+        tmp = (struct segment_mapping *)_lsmt_realloc(mappings, size * 
                                                 sizeof(struct segment_mapping));
-
-	#else
-	ret = (struct lsmt_ro_index *)kvmalloc(sizeof(struct lsmt_ro_index),GFP_KERNEL);
-	tmp = (struct segment_mapping *)krealloc(mappings, 
-		size * sizeof(struct segment_mapping),GFP_KERNEL);
-	#endif
 
         if (!tmp || !ret) goto err_ret;
         ret->pbegin = tmp;
@@ -697,20 +651,13 @@ static struct lsmt_ro_index *merge_memory_indexes(struct lsmt_ro_index **indexes
         return ret;
 
 err_ret:
-#ifndef __KERNEL__
-        free(mappings);
-        free(ret);
-        free(tmp);
-#else
-        kfree(mappings);
-        kfree(ret);
-        kfree(tmp);
-
-#endif
+        _lsmt_free(mappings);
+        _lsmt_free(ret);
+        _lsmt_free(tmp);
         return NULL;
 }
 
-static struct lsmt_ro_index *load_merge_index(int *files, size_t n, struct lsmt_ht *ht)
+static struct lsmt_ro_index *load_merge_index(void **files, size_t n, struct lsmt_ht *ht)
 {
         struct lsmt_ro_index *indexes[MAX_LAYERS];        
         struct lsmt_ro_index *pmi = NULL;
@@ -724,9 +671,9 @@ static struct lsmt_ro_index *load_merge_index(int *files, size_t n, struct lsmt_
                 struct segment_mapping *p = do_load_index(files[i], ht, true, &size);
                 if (!p) {
                         PRINT_ERROR("failed to load index from %d-th file", i);
-			#ifndef __KERNEL__
+#ifndef __KERNEL__
                         errno = EIO;
-			#endif
+#endif
                         return NULL;
                 }
                 struct lsmt_ro_index *pi = create_memory_index(p, ht->index_size,
@@ -736,17 +683,13 @@ static struct lsmt_ro_index *load_merge_index(int *files, size_t n, struct lsmt_
                 if (!pi) {
                         PRINT_ERROR("failed to create memory index! " \
                                 "( %d-th file )", i);
-			#ifndef __KERNEL__
-                        free(p);
-			#else
-			kfree(p);
-			#endif
+                        _lsmt_free(p);
                         return NULL;
                 }
                 indexes[i] = pi;
         }
       
-        REVERSE_LIST(int, &files[0], &files[n-1]);      
+        REVERSE_LIST(int, (int *)&files[0], (int *)&files[n-1]);      
         REVERSE_LIST(struct lsmt_ro_index*, &indexes[0], &indexes[n-1]);
         
         pmi = merge_memory_indexes(&indexes[0], n);
@@ -755,7 +698,6 @@ static struct lsmt_ro_index *load_merge_index(int *files, size_t n, struct lsmt_
                 PRINT_ERROR("failed to merge indexes %s","");
                 goto error_ret;
         }
-       
         return pmi;
         
 error_ret:
@@ -763,33 +705,33 @@ error_ret:
 }
 
 size_t lsmt_pread(struct lsmt_ro_file *file, 
-                char *buf, size_t count, uint64_t offset)
+                void *buf, size_t nbytes, off_t offset)
 {
 	
-
         size_t readn = 0;
         int NMAPPING = 16;
+        char *data = (char *)buf;
         struct segment_mapping mapping[NMAPPING];
-        if ((count | offset) & (ALIGNMENT - 1)) {
+        if ((nbytes | offset) & (ALIGNMENT - 1)) {
                 PRINT_ERROR("count(%lu) and offset(%llu) must be aligned", 
-                        count, offset);
+                        nbytes, offset);
                 //exit(0);
                 return -1;
         }
-        while (count > file->MAX_IO_SIZE){
-                size_t read = lsmt_pread(file, buf, file->MAX_IO_SIZE, offset);
+        while (nbytes > file->MAX_IO_SIZE){
+                size_t read = lsmt_pread(file, data, file->MAX_IO_SIZE, offset);
                 if (read < file->MAX_IO_SIZE){
                         PRINT_ERROR("read data error: (return %lu < %lu )",
                                 read, file->MAX_IO_SIZE);
                         return -1;
                 }
-                buf += read;
+                data += read;
                 offset += read;
-                count -= read;
+                nbytes -= read;
                 readn += read;
         }
         
-	struct segment s = { (uint64_t)offset / ALIGNMENT, (uint32_t)count / ALIGNMENT };
+	struct segment s = { (uint64_t)offset / ALIGNMENT, (uint32_t)nbytes / ALIGNMENT };
         
         while (true){
                 int n = ro_index_lookup(file->m_index, &s, mapping, NMAPPING);
@@ -798,39 +740,36 @@ size_t lsmt_pread(struct lsmt_ro_file *file,
                         if (s.offset < mapping[i].offset){
                                 size_t length = (mapping[i].offset - s.offset) 
                                         * ALIGNMENT;
-                                memset(buf, 0, length);
-                                buf += length;
+                                memset((void *)data, 0, length);
+                                data += length;
                                 readn += length;
                         }
-                        int fd = file->m_files[mapping[i].tag];
+                        void *fd = file->m_files[mapping[i].tag];
                         ssize_t size = mapping[i].length * ALIGNMENT;
                         ssize_t read = 0;
                         if (mapping[i].zeroed == 0){
-				#ifndef __KERNEL__
-                                read = pread(fd, buf, size, mapping[i].moffset * ALIGNMENT);
-				#else
-                                read = ksys_pread64(fd, buf, size, mapping[i].moffset * ALIGNMENT);
-				#endif
+                                read = _lsmt_pread(fd, data, size, 
+                                                mapping[i].moffset * ALIGNMENT);
                                 if (read < size) {
-                                        #ifndef __KERNEL__
+#ifndef __KERNEL__
 					PRINT_ERROR("read %d-th file error."\
                                                 "(%ld < %ld) errno: %d msg: %s",
                                                 mapping[i].tag, read, size, 
                                                 errno, strerror(errno));
-					#else
+#else
 					PRINT_ERROR("read %d-th file error."\
                                                 "(%ld < %ld) Read is %d",
                                                 mapping[i].tag, read, size, 
                                                 read);
-					#endif
+#endif
                                         return -1;
                                 }
                         } else {
                                 read = size;
-                                memset(buf, 0, size);
+                                memset(data, 0, size);
                         }
                         readn += read;
-                        buf += size;
+                        data += size;
                         forward_offset_to(&s, segment_end(&mapping[i]), 
                                 TYPE_SEGMENT);
                 }
@@ -838,22 +777,17 @@ size_t lsmt_pread(struct lsmt_ro_file *file,
         }
         if (s.length > 0){
                 size_t length = s.length * ALIGNMENT;
-                memset(buf, 0, length);
-                buf += length;
+                memset(data, 0, length);
+                data += length;
                 readn += length;
         }  
         return readn;
 }
 
-struct lsmt_ro_file *open_files(int *files, size_t n, bool ownership)
+struct lsmt_ro_file *open_files(void **files, size_t n, bool ownership)
 {
-	#ifndef __KERNEL__
-        struct lsmt_ro_file *ret = (struct lsmt_ro_file *)malloc(sizeof(int) * n
+        struct lsmt_ro_file *ret = (struct lsmt_ro_file *)_lsmt_malloc(sizeof(files[0]) * n
                                         + sizeof(struct lsmt_ro_file));
-	#else
-        struct lsmt_ro_file *ret = (struct lsmt_ro_file *)kvmalloc(sizeof(int) * n
-                                        + sizeof(struct lsmt_ro_file),GFP_KERNEL);
-	#endif
 
         struct lsmt_ht ht;
         struct lsmt_ro_index *idx = load_merge_index(files, n, &ht);
@@ -865,6 +799,6 @@ struct lsmt_ro_file *open_files(int *files, size_t n, bool ownership)
         ret->m_ownership = ownership;
         ret->m_vsize = ht.virtual_size;
         ret->MAX_IO_SIZE = MAX_IO_SIZE;
-        memcpy(ret->m_files, &files[0], n * sizeof(int));
+        memcpy(ret->m_files, &files[0], n * sizeof(files[0]));
         return ret;
 }
