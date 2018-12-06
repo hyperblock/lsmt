@@ -1,10 +1,18 @@
 #ifndef __LSMT_RO_H__
 #define __LSMT_RO_H__
+// 
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdint.h>
+//
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include <linux/err.h>
+#include <linux/printk.h>
+#ifndef HBDEBUG
+#define HBDEBUG (1)
+#endif
 
+#ifndef __KERNEL__
 #define PRINT_INFO(fmt, ...)                                     \
         printf("\033[33m|INFO |\033[0mline: %d|%s: " fmt "\n", \
                __LINE__, __FUNCTION__, __VA_ARGS__)
@@ -12,6 +20,22 @@
 #define PRINT_ERROR(fmt, ...)                                          \
         fprintf(stderr, "\033[31m|ERROR|\033[0m%s:%d|%s: " fmt "\n", \
                 __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+
+#define ASSERT(exp)						\
+	assert(exp)
+	
+#else
+#define PRINT_INFO(fmt, ...)                                     \
+	do { if ((HBDEBUG)) \
+	printk(KERN_INFO fmt, ## __VA_ARGS__);} while (0)
+
+#define PRINT_ERROR(fmt, ...)                                          \
+	do { if ((HBDEBUG)) \
+	printk(KERN_ERR fmt, ## __VA_ARGS__);} while (0)
+#define ASSERT(exp)						\
+	BUG_ON(exp)
+#endif
+
 
 #define ALIGNED_MEM(name, size, alignment)  \
         char __buf##name[(size) + (alignment)]; \
@@ -25,6 +49,27 @@
 #define TYPE_SEGMENT_MAPPING 1
 #define TYPE_FILDES          2   
 #define TYPE_LSMT_RO_INDEX   3
+
+struct segment {                             /* 8 bytes */
+        uint64_t offset : 50; // offset (0.5 PB if in sector)
+        uint32_t length : 14; // length (8MB if in sector)
+} /* __attribute__((packed)); */;
+
+struct segment_mapping {                             /* 8 + 8 bytes */
+        uint64_t offset : 50; // offset (0.5 PB if in sector)
+        uint32_t length : 14;
+        uint64_t moffset : 55; // mapped offset (2^64 B if in sector)
+        uint32_t zeroed : 1;   // indicating a zero-filled segment
+        uint8_t tag;
+};
+
+struct lsmt_ro_index {
+        const struct segment_mapping *pbegin;
+        const struct segment_mapping *pend;
+        struct segment_mapping mapping[0];
+};
+
+
 
 struct lsmt_ro_file {
         struct lsmt_ro_index *m_index;
