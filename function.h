@@ -84,6 +84,6 @@ void _lsmt_free(void *ptr)
 #ifndef __KERNEL__
         free(ptr);
 #else
-        kfree(ptr); 
+        kvfree(ptr); 
 #endif 
 }

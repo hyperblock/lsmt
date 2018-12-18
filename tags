@@ -1,0 +1,127 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALIGNED_MEM	lsmt_ro_file.h	45;"	d
+ALIGNMENT	lsmt_ro_file.c	40;"	d	file:
+ALIGNMENT4K	lsmt_ro_file.c	/^const static uint32_t ALIGNMENT4K    = 4 << 10;$/;"	v	file:
+ASSERT	lsmt_ro_file.h	25;"	d
+ASSERT	lsmt_ro_file.h	40;"	d
+FLAG_SHIFT_HEADER	lsmt_ro_file.c	/^static const uint32_t FLAG_SHIFT_HEADER = 0; \/\/ 1:header     0:trailer$/;"	v	file:
+FLAG_SHIFT_SEALED	lsmt_ro_file.c	/^static const uint32_t FLAG_SHIFT_SEALED = 2; \/\/ 1:YES,       0:NO$/;"	v	file:
+FLAG_SHIFT_TYPE	lsmt_ro_file.c	/^static const uint32_t FLAG_SHIFT_TYPE = 1;   \/\/ 1:data file, 0:index file$/;"	v	file:
+HBDEBUG	lsmt_ro_file.h	7;"	d
+HT_SPACE	lsmt_ro_file.c	/^static const uint32_t HT_SPACE = 4096;$/;"	v	file:
+IMAGE_RO_LAYERS	test.cc	165;"	d	file:
+INVALID_MAPPING	lsmt_ro_file.c	/^static struct segment_mapping INVALID_MAPPING = {$/;"	v	typeref:struct:segment_mapping	file:
+INVALID_OFFSET	lsmt_ro_file.c	/^const static uint64_t INVALID_OFFSET = (1UL << 50) - 1;$/;"	v	file:
+MAGIC0	lsmt_ro_file.c	/^static uint64_t *MAGIC0 = (uint64_t *)"LSMT\\0\\1\\2";$/;"	v	file:
+MAGIC1	lsmt_ro_file.c	/^static struct _UUID MAGIC1 = { 0xd2637e65, 0x4494, 0x4c08, 0xd2a2,$/;"	v	typeref:struct:_UUID	file:
+MAX_IO_SIZE	lsmt_ro_file.c	/^const static int MAX_IO_SIZE         = 4 * 1024 * 1024;$/;"	v	file:
+MAX_IO_SIZE	lsmt_ro_file.h	/^        size_t MAX_IO_SIZE;$/;"	m	struct:lsmt_ro_file
+MAX_LAYERS	lsmt_ro_file.c	/^const static int MAX_LAYERS          = 255;$/;"	v	file:
+MAX_LENGTH	lsmt_ro_file.c	/^const static uint32_t MAX_LENGTH     = (1 << 14) - 1;$/;"	v	file:
+MAX_OFFSET	lsmt_ro_file.c	/^const static uint64_t MAX_OFFSET     = (1UL << 50) - 1;$/;"	v	file:
+PRINT_ERROR	lsmt_ro_file.h	21;"	d
+PRINT_ERROR	lsmt_ro_file.h	37;"	d
+PRINT_INFO	lsmt_ro_file.h	17;"	d
+PRINT_INFO	lsmt_ro_file.h	33;"	d
+RAND_RANGE	test.cc	67;"	d	file:
+RAND_READN	test.cc	66;"	d	file:
+REVERSE_LIST	lsmt_ro_file.h	50;"	d
+TEST	test.cc	/^TEST(LSMT_RO, err_index_order){$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, err_open_file)$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, load_index)$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, lowerbound)$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, merge_indexes)$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, open_files)$/;"	f
+TEST	test.cc	/^TEST(LSMT_RO, open_files_exceed)$/;"	f
+TYPE_FILDES	lsmt_ro_file.h	55;"	d
+TYPE_LSMT_RO_INDEX	lsmt_ro_file.h	56;"	d
+TYPE_SEGMENT	lsmt_ro_file.h	53;"	d
+TYPE_SEGMENT_MAPPING	lsmt_ro_file.h	54;"	d
+UINT64_MAX	lsmt_ro_file.c	27;"	d	file:
+_UUID	lsmt_ro_file.c	/^struct _UUID {$/;"	s	file:
+__LSMT_RO_H__	lsmt_ro_file.h	2;"	d
+_lsmt_free	function.h	/^void _lsmt_free(void *ptr)$/;"	f
+_lsmt_fstat	function.h	/^int _lsmt_fstat(void *fd, void *stat)$/;"	f
+_lsmt_get_file_size	function.h	/^size_t _lsmt_get_file_size(void *fd)$/;"	f
+_lsmt_malloc	function.h	/^void *_lsmt_malloc(size_t size)$/;"	f
+_lsmt_pread	function.h	/^ssize_t _lsmt_pread(void *fd, void *buf, size_t n, off_t offset)$/;"	f
+_lsmt_realloc	function.h	/^void *_lsmt_realloc(void *ptr, size_t size)$/;"	f
+a	lsmt_ro_file.c	/^        uint32_t a;$/;"	m	struct:_UUID	file:
+b	lsmt_ro_file.c	/^        uint16_t b, c, d;$/;"	m	struct:_UUID	file:
+backward_end_to	lsmt_ro_file.c	/^void backward_end_to(void *m, uint64_t x)$/;"	f
+c	lsmt_ro_file.c	/^        uint16_t b, c, d;$/;"	m	struct:_UUID	file:
+call_close	test.cc	/^int call_close(int fd){$/;"	f
+call_malloc	test.cc	/^void* call_malloc(size_t x)$/;"	f
+call_pread	test.cc	/^int call_pread(int fd, void *buf, size_t size, off_t offset){$/;"	f
+call_realloc	test.cc	/^void *call_realloc(void *src, size_t size)$/;"	f
+close_file	lsmt_ro_file.c	/^int close_file(struct lsmt_ro_file **file){$/;"	f
+close_func	test.cc	/^int (*close_func)(int fd);$/;"	v
+create_memory_index	lsmt_ro_file.c	/^struct lsmt_ro_index *create_memory_index($/;"	f
+d	lsmt_ro_file.c	/^        uint16_t b, c, d;$/;"	m	struct:_UUID	file:
+dice	test.cc	/^int dice = 0;$/;"	v
+do_load_index	lsmt_ro_file.c	/^static struct segment_mapping* do_load_index(void* fd, $/;"	f	file:
+e	lsmt_ro_file.c	/^        uint8_t e[6];$/;"	m	struct:_UUID	file:
+flags	lsmt_ro_file.c	/^        uint32_t flags; \/\/= 0;$/;"	m	struct:lsmt_ht	file:
+forward_offset_to	lsmt_ro_file.c	/^void forward_offset_to(void *m, uint64_t x, int8_t type)$/;"	f
+get_flag_bit	lsmt_ro_file.c	/^static uint32_t get_flag_bit(const struct lsmt_ht *ht, uint32_t shift)$/;"	f	file:
+get_max_io_size	lsmt_ro_file.c	/^size_t get_max_io_size(const struct lsmt_ro_file *file )$/;"	f
+hook	test.cc	/^void hook(){$/;"	f
+index_offset	lsmt_ro_file.c	/^        uint64_t index_offset; \/\/ in bytes$/;"	m	struct:lsmt_ht	file:
+index_size	lsmt_ro_file.c	/^        uint64_t index_size;   \/\/ # of SegmentMappings$/;"	m	struct:lsmt_ht	file:
+is_data_file	lsmt_ro_file.c	/^static bool is_data_file(const struct lsmt_ht *ht)$/;"	f	file:
+is_header	lsmt_ro_file.c	/^static bool is_header(const struct lsmt_ht *ht)$/;"	f	file:
+is_index_file	lsmt_ro_file.c	/^static bool is_index_file(const struct lsmt_ht *ht)$/;"	f	file:
+is_sealed	lsmt_ro_file.c	/^static bool is_sealed(const struct lsmt_ht *ht)$/;"	f	file:
+is_trailer	lsmt_ro_file.c	/^static bool is_trailer(const struct lsmt_ht *ht)$/;"	f	file:
+length	lsmt_ro_file.h	/^        uint32_t length : 14; \/\/ length (8MB if in sector)$/;"	m	struct:segment
+length	lsmt_ro_file.h	/^        uint32_t length : 14;$/;"	m	struct:segment_mapping
+load_merge_index	lsmt_ro_file.c	/^static struct lsmt_ro_index *load_merge_index(void **files, size_t n, struct lsmt_ht *ht)$/;"	f	file:
+lsmt_ht	lsmt_ro_file.c	/^struct lsmt_ht {$/;"	s	file:
+lsmt_pread	lsmt_ro_file.c	/^size_t lsmt_pread(struct lsmt_ro_file *file, $/;"	f
+lsmt_ro_file	lsmt_ro_file.h	/^struct lsmt_ro_file {$/;"	s
+lsmt_ro_index	lsmt_ro_file.h	/^struct lsmt_ro_index {$/;"	s
+m_files	lsmt_ro_file.h	/^        void* m_files[0];$/;"	m	struct:lsmt_ro_file
+m_files_count	lsmt_ro_file.h	/^        size_t m_files_count;$/;"	m	struct:lsmt_ro_file
+m_index	lsmt_ro_file.h	/^        struct lsmt_ro_index *m_index;$/;"	m	struct:lsmt_ro_file	typeref:struct:lsmt_ro_file::lsmt_ro_index
+m_ownership	lsmt_ro_file.h	/^        bool m_ownership;       $/;"	m	struct:lsmt_ro_file
+m_vsize	lsmt_ro_file.h	/^        uint64_t m_vsize;$/;"	m	struct:lsmt_ro_file
+magic0	lsmt_ro_file.c	/^        uint64_t magic0;$/;"	m	struct:lsmt_ht	file:
+magic1	lsmt_ro_file.c	/^        struct _UUID magic1;$/;"	m	struct:lsmt_ht	typeref:struct:lsmt_ht::_UUID	file:
+main	test.cc	/^int main(int argc, char **argv){$/;"	f
+malloc_func	test.cc	/^void* (*malloc_func)(size_t);$/;"	v
+mapping	lsmt_ro_file.h	/^        struct segment_mapping mapping[0];$/;"	m	struct:lsmt_ro_index	typeref:struct:lsmt_ro_index::segment_mapping
+merge_indexes	lsmt_ro_file.c	/^static int merge_indexes(int level, $/;"	f	file:
+merge_memory_indexes	lsmt_ro_file.c	/^static struct lsmt_ro_index *merge_memory_indexes(struct lsmt_ro_index **indexes,$/;"	f	file:
+moffset	lsmt_ro_file.h	/^        uint64_t moffset : 55; \/\/ mapped offset (2^64 B if in sector)$/;"	m	struct:segment_mapping
+offset	lsmt_ro_file.h	/^        uint64_t offset : 50; \/\/ offset (0.5 PB if in sector)$/;"	m	struct:segment
+offset	lsmt_ro_file.h	/^        uint64_t offset : 50; \/\/ offset (0.5 PB if in sector)$/;"	m	struct:segment_mapping
+open_file	lsmt_ro_file.c	/^struct lsmt_ro_file *open_file(void *fd, bool ownership)$/;"	f
+open_files	lsmt_ro_file.c	/^struct lsmt_ro_file *open_files(void **files, size_t n, bool ownership)$/;"	f
+pbegin	lsmt_ro_file.h	/^        const struct segment_mapping *pbegin;$/;"	m	struct:lsmt_ro_index	typeref:struct:lsmt_ro_index::segment_mapping
+pend	lsmt_ro_file.h	/^        const struct segment_mapping *pend;$/;"	m	struct:lsmt_ro_index	typeref:struct:lsmt_ro_index::segment_mapping
+pread_func	test.cc	/^ssize_t (*pread_func)(int fd, void *buf, size_t size, off_t offset);$/;"	v
+print_segment	lsmt_ro_file.c	/^void print_segment(const struct segment *m)$/;"	f
+print_segment_mapping	lsmt_ro_file.c	/^void print_segment_mapping(const struct segment_mapping *m)$/;"	f
+rand_segment	test.cc	/^void rand_segment( struct segment * s )$/;"	f
+realloc_func	test.cc	/^void* (*realloc_func)(void*, size_t);$/;"	v
+ro_index_lookup	lsmt_ro_file.c	/^int ro_index_lookup(const struct lsmt_ro_index *index,$/;"	f
+ro_index_lower_bound	lsmt_ro_file.c	/^const struct segment_mapping *ro_index_lower_bound($/;"	f
+ro_index_size	lsmt_ro_file.c	/^size_t ro_index_size(const struct lsmt_ro_index *index)$/;"	f
+segment	lsmt_ro_file.h	/^struct segment {                             \/* 8 bytes *\/$/;"	s
+segment_end	lsmt_ro_file.c	/^static uint64_t segment_end(const void \/* const struct segment *\/ *m)$/;"	f	file:
+segment_mapping	lsmt_ro_file.h	/^struct segment_mapping {                             \/* 8 + 8 bytes *\/$/;"	s
+segment_mapping_mend	lsmt_ro_file.c	/^static uint64_t segment_mapping_mend(const struct segment_mapping *m)$/;"	f	file:
+set_max_io_size	lsmt_ro_file.c	/^int set_max_io_size(struct lsmt_ro_file *file, size_t size)$/;"	f
+size	lsmt_ro_file.c	/^        uint32_t size;  \/\/= sizeof(HeaderTrailer);$/;"	m	struct:lsmt_ht	file:
+tag	lsmt_ro_file.h	/^        uint8_t tag;$/;"	m	struct:segment_mapping
+trim_edge	lsmt_ro_file.c	/^static void trim_edge(void *m,$/;"	f	file:
+verify_magic	lsmt_ro_file.c	/^static bool verify_magic(const struct lsmt_ht *ht)$/;"	f	file:
+verify_mapping_moffset	lsmt_ro_file.c	/^static bool verify_mapping_moffset($/;"	f	file:
+verify_mapping_order	lsmt_ro_file.c	/^static bool verify_mapping_order($/;"	f	file:
+virtual_size	lsmt_ro_file.c	/^        uint64_t virtual_size; \/\/ in bytes$/;"	m	struct:lsmt_ht	file:
+zeroed	lsmt_ro_file.h	/^        uint32_t zeroed : 1;   \/\/ indicating a zero-filled segment$/;"	m	struct:segment_mapping
