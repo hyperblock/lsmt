@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/test.bin.dir/test/test.cc.o  -o test.bin -rdynamic /opt/google/googletest/libgtest.a 

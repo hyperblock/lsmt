@@ -86,7 +86,7 @@ static bool verify_mapping_order(
         {
                 const struct segment_mapping *nt = it + 1;
                 if (segment_end(it) <= nt->offset) continue;
-                PRINT_ERROR("segment disordered. [%llu %llu] , [%llu %llu]",
+                PRINT_ERROR("segment disordered. [%lu %lu] , [%lu %lu]",
                         it->offset, segment_end(it), nt->offset, segment_end(nt)
                 );
                 return false;
@@ -117,7 +117,7 @@ static bool verify_mapping_moffset(
                         segment_mapping_mend(it) <= moffset_end &&
                         it->moffset < segment_mapping_mend(it))) {
                         PRINT_ERROR("invalid index moffset: "\
-                                "[ %llu, %llu ] not in [%llu, %llu]",
+                                "[ %lu, %lu ] not in [%lu, %lu]",
                                 it->moffset, segment_mapping_mend(it),
                                 moffset_begin, moffset_end);
                         return false;
@@ -146,7 +146,7 @@ void backward_end_to(void *m, uint64_t x)
         struct segment *s = (struct segment *)m;
         if (x <= s->offset){
                 print_segment(s);
-                PRINT_ERROR("%llu > %llu is FALSE", x, s->offset);
+                PRINT_ERROR("%lu > %lu is FALSE", x, s->offset);
         }
         ASSERT(x > s->offset);
         s->length = x - s->offset;
@@ -502,7 +502,7 @@ error_ret:
 
 int close_file(struct lsmt_ro_file **file){
         
-        PRINT_INFO("destruct file. addr: %llx", (uint64_t)*file);
+        PRINT_INFO("destruct file. addr: %lu", (uint64_t)*file);
         if (*file == NULL) return 0;
                 bool ok = true;
         if ((*file)->m_ownership){
@@ -526,7 +526,7 @@ int close_file(struct lsmt_ro_file **file){
                 }
         }
         if (!ok) return -1;
-        PRINT_INFO("free memory. addr: %llx", (uint64_t)*file);
+        PRINT_INFO("free memory. addr: %lu", (uint64_t)*file);
         _lsmt_free(*file);      
         *file = NULL;
         return 0;
@@ -542,7 +542,7 @@ static int merge_indexes(int level,
                          uint64_t end)
 {
         if (level >= n) return 0;
-        // PRINT_INFO("level %d range [ %llu, %llu ] %lu", level, start, end,
+        // PRINT_INFO("level %d range [ %lu, %lu ] %lu", level, start, end,
         //          ro_index_size(indexes[level]));
         struct segment_mapping *p = (struct segment_mapping *)
                                         ro_index_lower_bound(indexes[level],
@@ -697,7 +697,7 @@ size_t lsmt_pread(struct lsmt_ro_file *file,
         char *data = (char *)buf;
         struct segment_mapping mapping[NMAPPING];
         if ((nbytes | offset) & (ALIGNMENT - 1)) {
-                PRINT_ERROR("count(%lu) and offset(%llu) must be aligned", 
+                PRINT_ERROR("count(%lu) and offset(%lu) must be aligned", 
                         nbytes, offset);
                 //exit(0);
                 return -1;

@@ -15,7 +15,7 @@ message("BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 include_directories("./")
 include_directories("./test")
-include_directories("/opt/code/googletest/include")
+include_directories("/opt/google/googletest/include")
 
 set(SRC_LIST test/test.cc
 	#		 lsmt_ro_file.c
@@ -24,4 +24,4 @@ set(SRC_LIST test/test.cc
 add_executable(test.bin ${SRC_LIST})
 
 
-target_link_libraries(test.bin /opt/code/googletest/libgtest.a)
+target_link_libraries(test.bin /opt/google/googletest/libgtest.a)
