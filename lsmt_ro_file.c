@@ -148,6 +148,7 @@ void backward_end_to(void *m, uint64_t x)
                 print_segment(s);
                 PRINT_ERROR("%lu > %lu is FALSE", x, s->offset);
         }
+
         ASSERT(x > s->offset);
         s->length = x - s->offset;
 }
@@ -215,6 +216,7 @@ struct lsmt_ro_index *create_memory_index(
         return NULL;
 };
 
+//find in index a lower bound that contains offset
 const struct segment_mapping *ro_index_lower_bound(
                 const struct lsmt_ro_index *index,
                 uint64_t offset)
@@ -542,8 +544,8 @@ static int merge_indexes(int level,
                          uint64_t end)
 {
         if (level >= n) return 0;
-        // PRINT_INFO("level %d range [ %lu, %lu ] %lu", level, start, end,
-        //          ro_index_size(indexes[level]));
+        PRINT_INFO("level %d range [ %lu, %lu ] %lu", level, start, end,
+                  ro_index_size(indexes[level]));
         struct segment_mapping *p = (struct segment_mapping *)
                                         ro_index_lower_bound(indexes[level],
                                                 start);
