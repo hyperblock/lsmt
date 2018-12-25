@@ -112,7 +112,7 @@ TEST(LSMT_RO, err_index_order){
                         calloc(n, sizeof(struct segment_mapping));
         for (int i=0; i<n; i++){
                 rand_segment( (struct segment *)&mappings[i] );
-                PRINT_INFO("generate index: [ %llu, %u ]", 
+                PRINT_INFO("generate index: [ %lu, %u ]", 
                         mappings[i].offset, mappings[i].length);
         }
         verify_mapping_order(mappings, n);
@@ -124,7 +124,7 @@ TEST(LSMT_RO, err_index_order){
                 rand_segment( (struct segment *)&mappings[i] );
                 mappings[i].offset += last_offset;
                 last_offset = segment_end( (segment *)&mappings[i] );
-                PRINT_INFO("generate index: [ %llu, %u ] %llu", 
+                PRINT_INFO("generate index: [ %lu, %u ] %lu", 
                         mappings[i].offset, mappings[i].length, last_offset);
         }
         create_memory_index(mappings, n, 0, 10, false);
@@ -174,9 +174,9 @@ TEST(LSMT_RO, load_index)
         }
         struct lsmt_ht ht;
         ssize_t n = 0;
-        struct segment_mapping *mi = do_load_index(fd, &ht, false, &n);
+        struct segment_mapping *mi = do_load_index((void *)(&fd), &ht, false, &n);
         free(mi);
-        mi = do_load_index(fd, &ht, true, &n);
+        mi = do_load_index((void *)(&fd), &ht, true, &n);
         // for (const struct segment_mapping *p = mi; p!=mi+n; p++ ){
         //         print_segment_mapping(p);
         // }
@@ -187,7 +187,7 @@ TEST(LSMT_RO, load_index)
                 return;
         }
         
-        mi = do_load_index(fd, &ht, false, &n);
+        mi = do_load_index((void *)(&fd), &ht, false, &n);
         free(mi);
 }
 
@@ -199,17 +199,17 @@ TEST(LSMT_RO, err_open_file)
                 PRINT_ERROR("errno: %d msg: %s", errno, strerror(errno));
                 return;
         }
-        struct lsmt_ro_file *ro = open_file(fd, true);
+        struct lsmt_ro_file *ro = open_file((void *)(&fd), true);
         close_file(&ro);
         fd = 0;
-        ro = open_file(fd, true);
+        ro = open_file((void *)(&fd), true);
         close_file(&ro);        
 }
 
 TEST(LSMT_RO, open_files_exceed)
 {
         int files [ IMAGE_RO_LAYERS + 1 ];
-        open_files(files, IMAGE_RO_LAYERS + 1, true);
+        open_files((void **)(&files), IMAGE_RO_LAYERS + 1, true);
 }
 
 TEST(LSMT_RO, open_files)
@@ -231,9 +231,9 @@ TEST(LSMT_RO, open_files)
                 cnt++;
         } 
         PRINT_INFO("open image (layers: %d)", cnt);
-        struct lsmt_ro_file *single = open_file(files[0], false);
+        struct lsmt_ro_file *single = open_file((void *)(&files[0]), false);
         close_file(&single);
-        struct lsmt_ro_file *ro = open_files(files, cnt, true);
+        struct lsmt_ro_file *ro = open_files((void **)(&files), cnt, true);
         PRINT_INFO("create lsmt_ro_file object. addr: 0x%lx", (unsigned long)(void *)ro);
         
         if (ro == NULL) {
@@ -247,7 +247,7 @@ TEST(LSMT_RO, open_files)
         set_max_io_size(ro,  10007); //invalid check
         set_max_io_size(ro,  512  * 1024);
         get_max_io_size(ro);
-        PRINT_INFO("file->MAX_IO_SIZE: %llu", ro->MAX_IO_SIZE);
+        PRINT_INFO("file->MAX_IO_SIZE: %lu", ro->MAX_IO_SIZE);
         int fimg = open(disk, O_RDONLY);
         struct stat st;
         fstat(fimg, &st);
@@ -267,7 +267,7 @@ TEST(LSMT_RO, open_files)
                         s.length / ALIGNMENT * ALIGNMENT, s.offset / ALIGNMENT * ALIGNMENT);
         }
 
-        PRINT_INFO("start verify lsmt_ro_file. %llu", ro->m_vsize);
+        PRINT_INFO("start verify lsmt_ro_file. %lu", ro->m_vsize);
         
        
         struct timeval t0, t1;
@@ -282,7 +282,7 @@ TEST(LSMT_RO, open_files)
                                 EXPECT_EQ(p[0], p[j]);
                         if (p[0] != data[o / ALIGNMENT + i])
                         {
-                                PRINT_INFO("file offset: %llu (%llu)\n", 
+                                PRINT_INFO("file offset: %lu (%lu)\n", 
                                         o + i * ALIGNMENT, o / ALIGNMENT + i);
                                 EXPECT_EQ(p[0], data[o / ALIGNMENT + i]);
                                 char *p = buf + i * ALIGNMENT;
