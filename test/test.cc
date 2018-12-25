@@ -219,7 +219,7 @@ TEST(LSMT_RO, open_files)
                 layers[i] = "/tmp/img_layer." + std::to_string(i) + ".lsmt";
         }   
         const char *disk = "/tmp/img.disk";
-        int files[IMAGE_RO_LAYERS];
+        uint64_t files[IMAGE_RO_LAYERS];
         int cnt = 0;
         for (int i = 0; i < IMAGE_RO_LAYERS; i++){
                 int fd = open(layers[i].c_str(), O_RDONLY);

@@ -26,7 +26,7 @@ size_t _lsmt_get_file_size(void *fd)
 {
 #ifndef __KERNEL__
 	struct stat stat;
-	fstat(*(int *)fd,  &stat);
+	fstat((int)(uint64_t)fd,  &stat);
 	return stat.st_size;
 #else
 	//note that fd is pointer to struct file here 

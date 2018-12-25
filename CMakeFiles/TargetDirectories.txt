@@ -1,3 +1,0 @@
-/root/lsmt/CMakeFiles/edit_cache.dir
-/root/lsmt/CMakeFiles/rebuild_cache.dir
-/root/lsmt/CMakeFiles/test.bin.dir

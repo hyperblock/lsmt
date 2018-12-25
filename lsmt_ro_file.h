@@ -14,11 +14,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define PRINT_INFO(fmt, ...)                                    \
-            do { if (HBDEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-#define PRINT_ERROR(fmt, ...) 					\
-            do { if (HBDEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+// #define PRINT_INFO(fmt, ...)                                    \
+//             do { if (HBDEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+// #define PRINT_ERROR(fmt, ...) 					\
+//             do { if (HBDEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#define PRINT_INFO(fmt, ...)                                     \
+        printf("\033[33m|INFO |\033[0mline: %d|%s: " fmt "\n", \
+               __LINE__, __FUNCTION__, __VA_ARGS__)
 
+#define PRINT_ERROR(fmt, ...)                                          \
+        fprintf(stderr, "\033[31m|ERROR|\033[0m%s:%d|%s: " fmt "\n", \
+                __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 #define ASSERT(exp)						\
 	assert(exp)
