@@ -162,7 +162,7 @@ err_malloc:
         free(i4);
 }
 
-#define IMAGE_RO_LAYERS 255
+#define IMAGE_RO_LAYERS 5
 TEST(LSMT_RO, load_index)
 {
         const char *index = "/tmp/img_index.0.lsmt";
@@ -206,15 +206,14 @@ TEST(LSMT_RO, err_open_file)
         close_file(&ro);        
 }
 
-TEST(LSMT_RO, open_files_exceed)
-{
-        int files [ IMAGE_RO_LAYERS + 1 ];
-        open_files((void **)(&files), IMAGE_RO_LAYERS + 1, true);
-}
-
+//TEST(LSMT_RO, open_files_exceed)
+//{
+//        int files [ IMAGE_RO_LAYERS + 1 ];
+//        open_files((void **)(&files), IMAGE_RO_LAYERS + 1, true);
+//}
+//
 TEST(LSMT_RO, open_files)
 {
-        return;
         std::vector<std::string> layers(IMAGE_RO_LAYERS);
         for (int i = 0; i<IMAGE_RO_LAYERS; i++){
                 layers[i] = "/tmp/img_layer." + std::to_string(i) + ".lsmt";
@@ -225,6 +224,7 @@ TEST(LSMT_RO, open_files)
         for (int i = 0; i < IMAGE_RO_LAYERS; i++){
                 int fd = open(layers[i].c_str(), O_RDONLY);
                 if (fd == -1){
+			PRINT_INFO("open file failed%d\n",i);
                         break;                        
                 }
                 files[i] = fd;

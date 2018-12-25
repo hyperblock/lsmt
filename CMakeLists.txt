@@ -1,9 +1,11 @@
 project("LSMTReadOnlyFile_in_C")
 cmake_minimum_required(VERSION 2.6)
 
-set(CMAKE_CXX_FLAG "-std=c++11 -O0 --coverage")
-set(CMAKE_C_FLAG "-std=C11 -O0 --coverage")
+#set(CMAKE_CXX_FLAG "-std=c++11 -O0 --coverage")
+#set(CMAKE_C_FLAG "-std=C11 -O0 --coverage")
 #set(CMAKE_LINK_FLAGS "${CMAKE_LINK_FLAGS} -fprofile-instr-generate")
+add_compile_options("-std=c++11")
+add_compile_options("-lpthread")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	add_compile_options("-O3")
@@ -18,10 +20,10 @@ include_directories("./test")
 include_directories("/opt/google/googletest/include")
 
 set(SRC_LIST test/test.cc
-	#		 lsmt_ro_file.c
-	)
+	lsmt_ro_file.c
+)
 
 add_executable(test.bin ${SRC_LIST})
 
+target_link_libraries(test.bin /opt/google/googletest/libgtest.a pthread)
 
-target_link_libraries(test.bin /opt/google/googletest/libgtest.a)

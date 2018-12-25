@@ -123,6 +123,33 @@ test.bin/fast:
 	$(MAKE) -f CMakeFiles/test.bin.dir/build.make CMakeFiles/test.bin.dir/build
 .PHONY : test.bin/fast
 
+lsmt_ro_file.o: lsmt_ro_file.c.o
+
+.PHONY : lsmt_ro_file.o
+
+# target to build an object file
+lsmt_ro_file.c.o:
+	$(MAKE) -f CMakeFiles/test.bin.dir/build.make CMakeFiles/test.bin.dir/lsmt_ro_file.c.o
+.PHONY : lsmt_ro_file.c.o
+
+lsmt_ro_file.i: lsmt_ro_file.c.i
+
+.PHONY : lsmt_ro_file.i
+
+# target to preprocess a source file
+lsmt_ro_file.c.i:
+	$(MAKE) -f CMakeFiles/test.bin.dir/build.make CMakeFiles/test.bin.dir/lsmt_ro_file.c.i
+.PHONY : lsmt_ro_file.c.i
+
+lsmt_ro_file.s: lsmt_ro_file.c.s
+
+.PHONY : lsmt_ro_file.s
+
+# target to generate assembly for a file
+lsmt_ro_file.c.s:
+	$(MAKE) -f CMakeFiles/test.bin.dir/build.make CMakeFiles/test.bin.dir/lsmt_ro_file.c.s
+.PHONY : lsmt_ro_file.c.s
+
 test/test.o: test/test.cc.o
 
 .PHONY : test/test.o
@@ -159,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test.bin"
+	@echo "... lsmt_ro_file.o"
+	@echo "... lsmt_ro_file.i"
+	@echo "... lsmt_ro_file.s"
 	@echo "... test/test.o"
 	@echo "... test/test.i"
 	@echo "... test/test.s"
